@@ -1,0 +1,22 @@
+# Ambiente virtual
+.venv/
+venv/
+
+# Python
+__pycache__/
+*.py[cod]
+
+# Banco local (recriado com migrate + popular_demo)
+db.sqlite3
+db.sqlite3-journal
+
+# Uploads: mídia pública e PRIVADA nunca vão para o repositório
+media/
+private_media/
+staticfiles/
+
+# Configurações locais e editores
+.env
+.vscode/
+.idea/
+*.log
