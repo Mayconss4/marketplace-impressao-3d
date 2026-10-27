@@ -1,0 +1,98 @@
+{% load static %}<!doctype html>
+<html lang="pt-br" data-bs-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block titulo %}Marketplace 3D{% endblock %}</title>
+  <script>
+    // Aplica o tema salvo antes da renderização para evitar "piscar" a página.
+    (function () {
+      var salvo = null;
+      try { salvo = localStorage.getItem("tema"); } catch (e) {}
+      var tema = salvo || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+      document.documentElement.setAttribute("data-bs-theme", tema);
+    })();
+  </script>
+  <link rel="icon" href="{% static 'img/logo.svg' %}" type="image/svg+xml">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="{% static 'css/site.css' %}" rel="stylesheet">
+</head>
+<body class="d-flex flex-column min-vh-100">
+  <nav class="navbar navbar-expand-lg border-bottom bg-body-tertiary sticky-top">
+    <div class="container">
+      <a class="navbar-brand d-flex align-items-center gap-2 fw-semibold" href="{% url 'core:home' %}">
+        <img src="{% static 'img/logo.svg' %}" alt="" width="32" height="32"> Marketplace 3D
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menu"
+              aria-controls="menu" aria-expanded="false" aria-label="Abrir menu">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="menu">
+        <ul class="navbar-nav me-auto">
+          <li class="nav-item">
+            <a class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}"
+               href="{% url 'core:home' %}"><i class="bi bi-house"></i> Início</a>
+          </li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'core:home' %}#vitrine"><i class="bi bi-box-seam"></i> Produtos</a></li>
+        </ul>
+        <ul class="navbar-nav align-items-lg-center gap-lg-2">
+          <li class="nav-item">
+            <button class="btn btn-link nav-link" type="button" id="alternar-tema" aria-label="Alternar tema claro/escuro">
+              <i class="bi bi-moon-stars" data-icone-tema></i> <span class="d-lg-none">Tema</span>
+            </button>
+          </li>
+          {% if user.is_authenticated %}
+            {% if user.is_staff %}
+              <li class="nav-item"><a class="nav-link" href="{% url 'admin:index' %}"><i class="bi bi-speedometer2"></i> Painel</a></li>
+            {% endif %}
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-person-circle"></i> {{ user.first_name|default:user.username }}
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li><span class="dropdown-item-text small text-body-secondary">Perfis: {{ user.perfis|join:", " }}</span></li>
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                  <form method="post" action="{% url 'core:logout' %}">
+                    {% csrf_token %}
+                    <button class="dropdown-item" type="submit"><i class="bi bi-box-arrow-right"></i> Sair</button>
+                  </form>
+                </li>
+              </ul>
+            </li>
+          {% else %}
+            <li class="nav-item"><a class="btn btn-primary btn-sm px-3" href="{% url 'core:login' %}"><i class="bi bi-box-arrow-in-right"></i> Entrar</a></li>
+          {% endif %}
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <main class="flex-grow-1">
+    {% if messages %}
+      <div class="container mt-3">
+        {% for message in messages %}
+          <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags|default:'info' }}{% endif %} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+    {% block conteudo %}{% endblock %}
+  </main>
+
+  <footer class="border-top py-4 mt-5 bg-body-tertiary">
+    <div class="container d-flex flex-column flex-md-row justify-content-between gap-2 small text-body-secondary">
+      <span>Marketplace de Impressão 3D — GAC116 Programação Web</span>
+      <span>Maycon H. S. de Sousa · Luan Y. Shimosaka</span>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+  <script src="{% static 'js/tema.js' %}"></script>
+</body>
+</html>
