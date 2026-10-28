@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Marketplace 3D">
+  <rect width="64" height="64" rx="14" fill="#1f2a37"/>
+  <path d="M32 10 52 21.5v21L32 54 12 42.5v-21Z" fill="#f97316"/>
+  <path d="M32 10 52 21.5 32 33 12 21.5Z" fill="#fdba74"/>
+  <path d="M32 33v21L12 42.5v-21Z" fill="#c2410c"/>
+  <path d="M18 46h28M18 50h28" stroke="#1f2a37" stroke-width="1.6" opacity=".45"/>
+</svg>

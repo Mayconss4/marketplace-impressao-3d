@@ -1,0 +1,11 @@
+/* Ajustes visuais do painel (Jazzmin) — Marketplace 3D */
+.brand-link .brand-image { opacity: 1 !important; max-height: 34px; }
+.brand-link { font-weight: 600; letter-spacing: .02em; }
+.content-header h1, .card-title { font-weight: 600; }
+#result_list td { vertical-align: middle; }
+.badge { font-size: .78rem; font-weight: 600; }
+.login-logo img { max-height: 72px; }
+/* Destaque para o aviso de pagamento fictício */
+fieldset .description, .card-body .description {
+  border-left: 4px solid #f97316; padding: .5rem .75rem; background: rgba(249, 115, 22, .08); border-radius: 4px;
+}
