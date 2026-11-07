@@ -1,0 +1,5 @@
+<div class="text-center py-5 border rounded-3">
+  <i class="bi bi-{{ icone|default:'inboxes' }} fs-1 text-body-tertiary"></i>
+  <p class="mt-3 mb-1 fw-semibold">{{ mensagem }}</p>
+  {% if dica %}<p class="small text-body-secondary mb-0">{{ dica }}</p>{% endif %}
+</div>
