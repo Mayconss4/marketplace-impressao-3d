@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block titulo %}Cadastre-se — Marketplace 3D{% endblock %}
+{% block conteudo %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-sm-11 col-md-8 col-lg-6">
+      <div class="card shadow-sm">
+        <div class="card-body p-4 p-md-5">
+          <h1 class="h4 fw-bold mb-1">Criar conta</h1>
+          <p class="text-body-secondary small mb-4">
+            Toda conta nova começa como <strong>compradora</strong>. Para vender, envie depois uma solicitação
+            que será analisada por um administrador.
+          </p>
+          <form method="post" novalidate>
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.GET.next }}">
+            {% include "includes/campos_form.html" %}
+            <button type="submit" class="btn btn-primary w-100"><i class="bi bi-person-plus"></i> Cadastrar</button>
+          </form>
+          <hr class="my-4">
+          <p class="small text-body-secondary mb-0">Já tem conta? <a href="{% url 'core:login' %}">Entrar</a></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

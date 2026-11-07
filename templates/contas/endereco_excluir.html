@@ -1,0 +1,16 @@
+{% extends "area_conta.html" %}
+{% block titulo %}Excluir endereço — Marketplace 3D{% endblock %}
+{% block area %}
+<div class="card shadow-sm border-danger-subtle">
+  <div class="card-body p-4">
+    <h1 class="h4 fw-bold mb-3">Excluir endereço “{{ endereco.apelido }}”?</h1>
+    <p class="small text-body-secondary" style="white-space: pre-line">{{ endereco.como_texto }}</p>
+    <p class="small">Pedidos já feitos com este endereço continuam com a cópia dos dados de entrega.</p>
+    <form method="post" class="d-flex gap-2">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-danger"><i class="bi bi-trash"></i> Excluir</button>
+      <a class="btn btn-outline-secondary" href="{% url 'contas:enderecos' %}">Cancelar</a>
+    </form>
+  </div>
+</div>
+{% endblock %}

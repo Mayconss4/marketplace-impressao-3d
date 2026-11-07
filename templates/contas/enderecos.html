@@ -1,0 +1,28 @@
+{% extends "area_conta.html" %}
+{% block titulo %}Endereços — Marketplace 3D{% endblock %}
+{% block area %}
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+  <h1 class="h4 fw-bold mb-0">Endereços de entrega</h1>
+  <a class="btn btn-primary btn-sm" href="{% url 'contas:endereco_novo' %}"><i class="bi bi-plus-lg"></i> Novo endereço</a>
+</div>
+{% if enderecos %}
+<div class="row row-cols-1 row-cols-md-2 g-3">
+  {% for endereco in enderecos %}
+  <div class="col">
+    <div class="card h-100 shadow-sm">
+      <div class="card-body">
+        <h2 class="h6 fw-semibold"><i class="bi bi-geo-alt text-primary"></i> {{ endereco.apelido }}</h2>
+        <p class="small text-body-secondary mb-0" style="white-space: pre-line">{{ endereco.como_texto }}</p>
+      </div>
+      <div class="card-footer bg-transparent d-flex gap-2">
+        <a class="btn btn-outline-secondary btn-sm" href="{% url 'contas:endereco_editar' endereco.pk %}"><i class="bi bi-pencil"></i> Editar</a>
+        <a class="btn btn-outline-danger btn-sm" href="{% url 'contas:endereco_excluir' endereco.pk %}"><i class="bi bi-trash"></i> Excluir</a>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+  {% include "includes/vazio.html" with icone="geo-alt" mensagem="Nenhum endereço cadastrado." dica="Cadastre um endereço para receber produtos físicos." %}
+{% endif %}
+{% endblock %}
