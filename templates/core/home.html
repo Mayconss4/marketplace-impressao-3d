@@ -12,9 +12,11 @@
           (STL, 3MF, OBJ e STEP) e orçamentos para projetos personalizados.
         </p>
         <div class="d-flex flex-wrap gap-2 mt-4">
-          <a href="#vitrine" class="btn btn-primary btn-lg"><i class="bi bi-grid"></i> Ver produtos</a>
-          {% if not user.is_authenticated %}
-            <a href="{% url 'core:login' %}" class="btn btn-outline-secondary btn-lg"><i class="bi bi-box-arrow-in-right"></i> Entrar</a>
+          <a href="{% url 'catalogo:lista' %}" class="btn btn-primary btn-lg"><i class="bi bi-grid"></i> Ver produtos</a>
+          {% if user.is_authenticated %}
+            <a href="{% url 'orcamentos:novo' %}" class="btn btn-outline-secondary btn-lg"><i class="bi bi-upload"></i> Pedir orçamento</a>
+          {% else %}
+            <a href="{% url 'contas:cadastro' %}" class="btn btn-outline-secondary btn-lg"><i class="bi bi-person-plus"></i> Criar conta</a>
           {% endif %}
         </div>
       </div>
@@ -37,7 +39,7 @@
             <div class="card shadow-sm"><div class="card-body">
               <div class="small text-body-secondary mb-2">Categorias</div>
               {% for categoria in categorias_raiz %}
-                <span class="badge text-bg-secondary me-1 mb-1">{{ categoria.nome }}</span>
+                <a class="badge text-bg-secondary text-decoration-none me-1 mb-1" href="{% url 'catalogo:lista' %}?categoria={{ categoria.slug }}">{{ categoria.nome }}</a>
               {% endfor %}
             </div></div>
           </div>
@@ -54,46 +56,13 @@
       <h2 class="h3 fw-bold mb-1">Novidades na vitrine</h2>
       <p class="text-body-secondary mb-0">Somente anúncios ativos de lojas ativas.</p>
     </div>
+    <a class="btn btn-outline-primary btn-sm" href="{% url 'catalogo:lista' %}">Ver todos <i class="bi bi-arrow-right"></i></a>
   </div>
 
   {% if produtos %}
   <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xl-4 g-4">
     {% for produto in produtos %}
-    <div class="col">
-      <article class="card h-100 shadow-sm produto-card">
-        {% if produto.capa %}
-          <img src="{{ produto.capa.imagem.url }}" class="card-img-top" alt="{{ produto.capa.texto_alternativo|default:produto.nome }}" loading="lazy">
-        {% else %}
-          <div class="card-img-top placeholder-capa d-flex align-items-center justify-content-center">
-            <i class="bi bi-box fs-1 text-body-tertiary"></i>
-          </div>
-        {% endif %}
-        <div class="card-body d-flex flex-column">
-          <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
-            <span class="small text-body-secondary">{{ produto.categoria.caminho }}</span>
-            {% if produto.eh_digital %}
-              <span class="badge text-bg-info"><i class="bi bi-file-earmark-arrow-down"></i> Digital</span>
-            {% else %}
-              <span class="badge text-bg-warning"><i class="bi bi-printer"></i> Físico</span>
-            {% endif %}
-          </div>
-          <h3 class="h6 fw-semibold">{{ produto.nome }}</h3>
-          <p class="small text-body-secondary mb-3">{{ produto.descricao|truncatewords:16 }}</p>
-          <div class="mt-auto d-flex justify-content-between align-items-end">
-            <div>
-              {% if not produto.eh_digital %}<span class="small text-body-secondary d-block">a partir de</span>{% endif %}
-              <span class="fs-5 fw-bold">R$ {{ produto.preco_exibido|floatformat:2 }}</span>
-            </div>
-            <div class="text-end small">
-              <span class="d-block text-body-secondary"><i class="bi bi-shop"></i> {{ produto.loja.nome }}</span>
-              {% if not produto.eh_digital and not produto.estoque %}
-                <span class="text-danger">Esgotado</span>
-              {% endif %}
-            </div>
-          </div>
-        </div>
-      </article>
-    </div>
+    <div class="col">{% include "includes/card_produto.html" %}</div>
     {% endfor %}
   </div>
   {% else %}
