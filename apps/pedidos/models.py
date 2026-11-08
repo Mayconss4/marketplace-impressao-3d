@@ -99,6 +99,8 @@ class ItemCarrinho(models.Model):
         if not self.produto_id:
             return
         validar_combinacao(self.produto, self.variacao, self.quantidade)
+        if self.carrinho_id and self.produto.loja.vendedor.usuario_id == self.carrinho.comprador_id:
+            raise ValidationError("Você não pode comprar produtos da sua própria loja.")
         # Espelha as UniqueConstraints condicionais (não validadas por formulários inline).
         if self.carrinho_id:
             repetidos = ItemCarrinho.objects.filter(carrinho_id=self.carrinho_id).exclude(pk=self.pk)
@@ -192,7 +194,12 @@ class Pedido(models.Model):
 
     @property
     def pode_ser_cancelado_pelo_comprador(self):
-        return self.status == StatusPedido.PENDENTE
+        """Pendente, sem subpedido em andamento e sem pagamento confirmado."""
+        if self.status != StatusPedido.PENDENTE:
+            return False
+        return not self.subpedidos.filter(
+            ~Q(status=StatusPedido.PENDENTE) | Q(pagamento__status=PagamentoSimulado.Status.CONFIRMADO)
+        ).exists()
 
     def copiar_endereco(self, endereco):
         self.endereco = endereco
@@ -313,6 +320,31 @@ class ItemPedido(models.Model):
         if self.preco_unitario is None or self.quantidade is None:
             return ZERO
         return self.preco_unitario * self.quantidade
+
+    @property
+    def download_liberado(self):
+        """Arquivos digitais ficam disponíveis após a confirmação do pagamento do subpedido."""
+        if self.tipo_produto != Produto.Tipo.DIGITAL or self.produto_id is None:
+            return False
+        pagamento = getattr(self.subpedido, "pagamento", None)
+        return (
+            self.subpedido.status != StatusPedido.CANCELADO
+            and pagamento is not None
+            and pagamento.status == PagamentoSimulado.Status.CONFIRMADO
+        )
+
+
+def comprou_com_pagamento_confirmado(usuario, produto_id):
+    """Indica se o usuário tem acesso aos arquivos de um produto digital que comprou."""
+    return (
+        ItemPedido.objects.filter(
+            produto_id=produto_id,
+            subpedido__pedido__comprador=usuario,
+            subpedido__pagamento__status=PagamentoSimulado.Status.CONFIRMADO,
+        )
+        .exclude(subpedido__status=StatusPedido.CANCELADO)
+        .exists()
+    )
 
 
 class PagamentoSimulado(models.Model):

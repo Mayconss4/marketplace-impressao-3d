@@ -1,19 +1,33 @@
-"""Operações que criam vários registros comerciais de uma vez (sempre atômicas).
+"""Operações que criam ou alteram vários registros comerciais de uma vez (sempre atômicas).
 
-O checkout público (carrinho → pedido) será construído no Checkpoint 2 sobre
-``registrar_pedido``; no Checkpoint 1 a função é usada pelos dados de demonstração
-e garante as mesmas regras que o checkout precisará respeitar.
+``registrar_pedido`` é usado pelo checkout do site (carrinho → pedido) e pelos dados
+de demonstração; ``finalizar_carrinho`` e ``cancelar_pedido`` atendem a área do comprador.
 """
 
 from collections import defaultdict
 
-from django.core.exceptions import ValidationError
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
+from django.db.models import F
 
 from apps.catalogo.models import Produto, VariacaoProduto
 from apps.orcamentos.models import Orcamento
 
-from .models import ItemPedido, PagamentoSimulado, Pedido, SubPedido, validar_combinacao
+from .models import (
+    Carrinho,
+    ItemPedido,
+    PagamentoSimulado,
+    Pedido,
+    StatusPedido,
+    SubPedido,
+    validar_combinacao,
+)
+
+
+def validar_autocompra(comprador, produto):
+    """Vendedores não compram da própria loja."""
+    if produto.loja.vendedor.usuario_id == comprador.pk:
+        raise ValidationError(f"Você não pode comprar '{produto}', pois ele é da sua própria loja.")
 
 
 def _validar_endereco(comprador, endereco, exige_entrega):
@@ -48,9 +62,10 @@ def registrar_pedido(comprador, linhas, endereco=None):
 
     por_loja = defaultdict(list)
     for produto, variacao, quantidade in linhas:
-        produto = Produto.objects.select_related("loja").get(pk=produto.pk)
+        produto = Produto.objects.select_related("loja__vendedor").get(pk=produto.pk)
         if not produto.esta_disponivel:
             raise ValidationError(f"O produto '{produto}' não está disponível para compra.")
+        validar_autocompra(comprador, produto)
         if variacao is not None:
             variacao = VariacaoProduto.objects.select_for_update().get(pk=variacao.pk)
         validar_combinacao(produto, variacao, quantidade)
@@ -111,4 +126,42 @@ def gerar_pedido_de_orcamento(orcamento, endereco):
         quantidade=orcamento.quantidade,
     )
     _fechar_subpedidos(pedido, [subpedido])
+    return pedido
+
+
+@transaction.atomic
+def finalizar_carrinho(comprador, endereco=None):
+    """Checkout: transforma o carrinho em pedido e o esvazia na mesma transação."""
+    carrinho = Carrinho.objects.select_for_update().filter(comprador=comprador).first()
+    itens = list(carrinho.itens.select_related("produto", "variacao")) if carrinho else []
+    if not itens:
+        raise ValidationError("Seu carrinho está vazio.")
+    pedido = registrar_pedido(
+        comprador, [(item.produto, item.variacao, item.quantidade) for item in itens], endereco
+    )
+    carrinho.itens.all().delete()
+    return pedido
+
+
+@transaction.atomic
+def cancelar_pedido(comprador, pedido):
+    """Cancelamento pelo comprador: cancela todos os subpedidos e devolve o estoque.
+
+    Só é permitido enquanto o pedido e todos os subpedidos estão Pendentes e
+    nenhum pagamento simulado foi confirmado.
+    """
+    pedido = Pedido.objects.select_for_update().get(pk=pedido.pk)
+    if pedido.comprador_id != comprador.pk:
+        raise PermissionDenied("Somente o comprador pode cancelar este pedido.")
+    subpedidos = list(pedido.subpedidos.select_related("pagamento"))
+    if pedido.status != StatusPedido.PENDENTE or any(s.status != StatusPedido.PENDENTE for s in subpedidos):
+        raise ValidationError("Somente pedidos pendentes podem ser cancelados.")
+    if any(s.pagamento.status != PagamentoSimulado.Status.PENDENTE for s in subpedidos):
+        raise ValidationError("Este pedido já tem pagamento confirmado e não pode ser cancelado.")
+
+    for item in ItemPedido.objects.filter(subpedido__pedido=pedido, variacao__isnull=False):
+        VariacaoProduto.objects.filter(pk=item.variacao_id).update(estoque=F("estoque") + item.quantidade)
+    pedido.subpedidos.update(status=StatusPedido.CANCELADO)
+    pedido.status = StatusPedido.CANCELADO
+    pedido.save(update_fields=["status", "atualizado_em"])
     return pedido
