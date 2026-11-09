@@ -22,7 +22,7 @@ from apps.core import demo_arquivos as arq
 from apps.core.validadores import calcular_digito
 from apps.orcamentos.models import Orcamento
 from apps.pedidos.models import Carrinho, ItemCarrinho, ItemPedido, PagamentoSimulado, Pedido, StatusPedido, SubPedido
-from apps.pedidos.servicos import registrar_pedido
+from apps.pedidos.servicos import cancelar_pedido, registrar_pedido
 from apps.vendedores.models import Loja, PerfilVendedor, SolicitacaoVendedor
 
 PREFIXO = "demo_"
@@ -385,9 +385,7 @@ class Command(BaseCommand):
 
         # O vendedor da Oficina Camadas também compra, como comprador, de outra loja.
         p4 = registrar_pedido(oficina, [(engrenagem, engrenagem.variacoes_demo[0], 3)], end_oficina)
-        p4.status = StatusPedido.CANCELADO
-        p4.save(update_fields=["status"])
-        p4.subpedidos.update(status=StatusPedido.CANCELADO)
+        cancelar_pedido(oficina, p4)  # cancelado pelo comprador: estoque devolvido
         out("  carrinhos, pedidos, subpedidos e pagamentos simulados criados")
 
         # Orçamentos (todos os estados) --------------------------------
