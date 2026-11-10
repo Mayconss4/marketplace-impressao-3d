@@ -1,0 +1,22 @@
+{% extends "area_conta.html" %}
+{% block titulo %}Novo orçamento — Marketplace 3D{% endblock %}
+{% block area %}
+<div class="card shadow-sm">
+  <div class="card-body p-4">
+    <h1 class="h4 fw-bold mb-1">Solicitar impressão personalizada</h1>
+    <p class="small text-body-secondary mb-4">Envie seu modelo 3D; a loja responde com um preço unitário e você decide se aceita.</p>
+    {% if form.fields.vendedor.queryset %}
+      <form method="post" enctype="multipart/form-data" novalidate class="col-lg-9 px-0">
+        {% csrf_token %}
+        {% include "includes/campos_form.html" %}
+        <div class="d-flex gap-2">
+          <button type="submit" class="btn btn-primary"><i class="bi bi-send"></i> Enviar solicitação</button>
+          <a class="btn btn-outline-secondary" href="{% url 'orcamentos:lista' %}">Cancelar</a>
+        </div>
+      </form>
+    {% else %}
+      {% include "includes/vazio.html" with icone="shop" mensagem="Nenhuma loja disponível para orçamentos no momento." %}
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
