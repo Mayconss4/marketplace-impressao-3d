@@ -35,6 +35,7 @@ class BaseDemo(TestCase):
         u = Usuario.objects.get
         cls.admin = u(username="demo_admin")
         cls.ana = u(username="demo_ana")
+        cls.bruno = u(username="demo_bruno")
         cls.carla = u(username="demo_carla")
         cls.oficina = u(username="demo_oficina")
         cls.filamentos = u(username="demo_filamentos")
@@ -216,7 +217,7 @@ class InterfacePublicaTests(BaseDemo):
 
     def test_login_e_logout(self):
         resposta = self.client.post(reverse("core:login"), {"username": "demo_ana", "password": "Demo@2026"})
-        self.assertRedirects(resposta, reverse("core:home"))
+        self.assertRedirects(resposta, reverse("core:painel"))
         self.assertContains(self.client.get(reverse("core:home")), "Sair")
         self.assertRedirects(self.client.post(reverse("core:logout")), reverse("core:home"))
 
@@ -231,7 +232,7 @@ class ArquivosPrivadosTests(BaseDemo):
             self.client.force_login(usuario)
             self.assertEqual(self.client.get(url).status_code, esperado, usuario.username)
 
-    def test_arquivo_digital_so_para_dono_e_admin(self):
+    def test_arquivo_digital_sem_compra_so_para_dono_e_admin(self):
         arquivo = ArquivoDigital.objects.filter(produto__loja=self.loja_oficina).first()
         for usuario, esperado in ((self.ana, 403), (self.filamentos, 403), (self.oficina, 200), (self.admin, 200)):
             self.client.force_login(usuario)
