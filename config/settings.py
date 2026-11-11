@@ -1,5 +1,5 @@
 """
-Configurações do projeto Marketplace de Impressão 3D (GAC116 — Checkpoint 1).
+Configurações do projeto Marketplace de Impressão 3D (GAC116).
 
 Valores sensíveis podem ser sobrescritos por variáveis de ambiente; os padrões
 abaixo destinam-se exclusivamente ao ambiente de desenvolvimento.
@@ -61,6 +61,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "apps.pedidos.contexto.carrinho",
             ],
         },
     },
@@ -70,7 +71,7 @@ WSGI_APPLICATION = "config.wsgi.application"
 
 
 # ---------------------------------------------------------------------------
-# Banco de dados (SQLite durante todo o Checkpoint 1)
+# Banco de dados relacional (SQLite)
 # ---------------------------------------------------------------------------
 DATABASES = {
     "default": {
@@ -93,7 +94,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 LOGIN_URL = "core:login"
-LOGIN_REDIRECT_URL = "core:home"
+LOGIN_REDIRECT_URL = "core:painel"
 LOGOUT_REDIRECT_URL = "core:home"
 
 

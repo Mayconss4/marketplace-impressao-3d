@@ -7,7 +7,7 @@
       <div class="card shadow-sm">
         <div class="card-body p-4 p-md-5">
           <h1 class="h4 fw-bold mb-1">Entrar</h1>
-          <p class="text-body-secondary small mb-4">Use seu nome de usuário e senha.</p>
+          <p class="text-body-secondary small mb-4">Use seu nome de usuário e senha. Ainda não tem conta? <a href="{% url 'contas:cadastro' %}">Cadastre-se</a>.</p>
 
           {% if form.non_field_errors %}
             <div class="alert alert-danger small">{% for erro in form.non_field_errors %}{{ erro }}{% endfor %}</div>

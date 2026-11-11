@@ -10,6 +10,11 @@ admin.site.index_title = "Painel administrativo"
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("", include("apps.core.urls")),
+    path("", include("apps.contas.urls")),
+    path("", include("apps.vendedores.urls")),
+    path("", include("apps.pedidos.urls")),
+    path("produtos/", include("apps.catalogo.urls")),
+    path("minha-conta/orcamentos/", include("apps.orcamentos.urls")),
 ]
 
 if settings.DEBUG:

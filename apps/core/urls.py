@@ -8,6 +8,7 @@ app_name = "core"
 
 urlpatterns = [
     path("", views.home, name="home"),
+    path("minha-conta/", views.painel, name="painel"),
     path(
         "entrar/",
         auth_views.LoginView.as_view(

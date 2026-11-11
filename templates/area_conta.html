@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% comment %}Layout da área do usuário final: menu lateral + conteúdo.{% endcomment %}
+{% block conteudo %}
+{% with secao=request.resolver_match.url_name app=request.resolver_match.app_name %}
+<div class="container py-4">
+  <div class="row g-4">
+    <aside class="col-lg-3">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <div class="d-flex align-items-center gap-2 mb-3">
+            <i class="bi bi-person-circle fs-3 text-primary"></i>
+            <div>
+              <div class="fw-semibold">{{ user.get_full_name|default:user.username }}</div>
+              <div class="small text-body-secondary">{{ user.perfis|join:" · " }}</div>
+            </div>
+          </div>
+          <nav class="nav nav-pills flex-column gap-1 menu-conta">
+            <a class="nav-link {% if secao == 'painel' %}active{% endif %}" href="{% url 'core:painel' %}"><i class="bi bi-grid"></i> Visão geral</a>
+            <a class="nav-link {% if app == 'pedidos' and secao != 'carrinho' and secao != 'checkout' %}active{% endif %}" href="{% url 'pedidos:lista' %}"><i class="bi bi-receipt"></i> Meus pedidos</a>
+            <a class="nav-link {% if app == 'orcamentos' %}active{% endif %}" href="{% url 'orcamentos:lista' %}"><i class="bi bi-file-earmark-text"></i> Meus orçamentos</a>
+            <a class="nav-link {% if secao == 'carrinho' or secao == 'checkout' %}active{% endif %}" href="{% url 'pedidos:carrinho' %}"><i class="bi bi-cart3"></i> Carrinho</a>
+            <a class="nav-link {% if 'endereco' in secao %}active{% endif %}" href="{% url 'contas:enderecos' %}"><i class="bi bi-geo-alt"></i> Endereços</a>
+            <a class="nav-link {% if secao == 'dados' or secao == 'senha' %}active{% endif %}" href="{% url 'contas:dados' %}"><i class="bi bi-person-gear"></i> Dados e senha</a>
+            <a class="nav-link {% if app == 'vendedores' %}active{% endif %}" href="{% url 'vendedores:solicitacao' %}"><i class="bi bi-shop"></i> {% if user.eh_vendedor_aprovado %}Minha loja{% else %}Quero vender{% endif %}</a>
+          </nav>
+        </div>
+      </div>
+    </aside>
+    <section class="col-lg-9">
+      {% block area %}{% endblock %}
+    </section>
+  </div>
+</div>
+{% endwith %}
+{% endblock %}
