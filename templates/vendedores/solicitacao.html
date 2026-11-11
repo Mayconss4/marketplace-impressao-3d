@@ -1,0 +1,55 @@
+{% extends "area_conta.html" %}
+{% block titulo %}{% if user.eh_vendedor_aprovado %}Minha loja{% else %}Quero vender{% endif %} — Marketplace 3D{% endblock %}
+{% block area %}
+{% if user.eh_vendedor_aprovado %}
+  <h1 class="h4 fw-bold mb-3">Minha loja</h1>
+  <div class="card shadow-sm">
+    <div class="card-body">
+      {% if loja %}
+        <div class="d-flex align-items-center gap-3 mb-3">
+          {% if loja.logotipo %}<img src="{{ loja.logotipo.url }}" alt="" width="64" height="64" class="rounded border object-fit-cover">{% endif %}
+          <div>
+            <div class="fw-semibold fs-5">{{ loja.nome }}</div>
+            {% if loja.ativa %}<span class="badge text-bg-success">Ativa</span>{% else %}<span class="badge text-bg-secondary">Inativa</span>{% endif %}
+          </div>
+        </div>
+        <p class="small text-body-secondary">{{ loja.descricao }}</p>
+        <a class="btn btn-outline-secondary btn-sm" href="{% url 'catalogo:lista' %}?loja={{ loja.pk }}"><i class="bi bi-eye"></i> Ver produtos na vitrine</a>
+      {% else %}
+        <p class="mb-2">Sua conta foi aprovada como vendedora, mas a loja ainda não foi criada.</p>
+      {% endif %}
+      <hr>
+      <p class="small mb-2">Produtos, variações, arquivos digitais, orçamentos recebidos, subpedidos e pagamentos são geridos no painel do vendedor:</p>
+      <a class="btn btn-primary" href="{% url 'admin:index' %}"><i class="bi bi-speedometer2"></i> Abrir painel do vendedor</a>
+    </div>
+  </div>
+{% else %}
+  <h1 class="h4 fw-bold mb-3">Quero vender</h1>
+  {% if ativa %}
+    <div class="alert alert-warning"><i class="bi bi-hourglass-split"></i> Sua solicitação para a loja <strong>{{ ativa.nome_loja }}</strong> está <strong>pendente</strong> de análise por um administrador.</div>
+  {% else %}
+    <div class="card shadow-sm">
+      <div class="card-body p-4">
+        <p class="small text-body-secondary">Depois da aprovação, sua conta continua compradora e ganha acesso ao painel do vendedor para criar a loja e cadastrar produtos.</p>
+        <form method="post" novalidate class="col-lg-9 px-0">
+          {% csrf_token %}
+          {% include "includes/campos_form.html" %}
+          <button class="btn btn-primary" type="submit"><i class="bi bi-send"></i> Enviar solicitação</button>
+        </form>
+      </div>
+    </div>
+  {% endif %}
+{% endif %}
+
+{% if historico %}
+  <h2 class="h6 fw-bold mt-4">Histórico de solicitações</h2>
+  <ul class="list-group small">
+    {% for s in historico %}
+      <li class="list-group-item d-flex justify-content-between flex-wrap gap-2">
+        <span>{{ s.nome_loja }} · {{ s.get_tipo_pessoa_display }} {{ s.documento_formatado }} · {{ s.criado_em|date:"d/m/Y" }}</span>
+        {% include "includes/badge_status.html" with valor=s.status rotulo=s.get_status_display %}
+      </li>
+    {% endfor %}
+  </ul>
+{% endif %}
+{% endblock %}
