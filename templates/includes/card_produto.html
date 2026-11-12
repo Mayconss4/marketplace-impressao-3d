@@ -1,0 +1,34 @@
+<article class="card h-100 shadow-sm produto-card">
+  <a href="{% url 'catalogo:detalhe' produto.pk %}" class="stretched-link" aria-label="Ver {{ produto.nome }}"></a>
+  {% if produto.capa %}
+    <img src="{{ produto.capa.imagem.url }}" class="card-img-top" alt="{{ produto.capa.texto_alternativo|default:produto.nome }}" loading="lazy">
+  {% else %}
+    <div class="card-img-top placeholder-capa d-flex align-items-center justify-content-center">
+      <i class="bi bi-box fs-1 text-body-tertiary"></i>
+    </div>
+  {% endif %}
+  <div class="card-body d-flex flex-column">
+    <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+      <span class="small text-body-secondary">{{ produto.categoria.caminho }}</span>
+      {% if produto.eh_digital %}
+        <span class="badge text-bg-info"><i class="bi bi-file-earmark-arrow-down"></i> Digital</span>
+      {% else %}
+        <span class="badge text-bg-warning"><i class="bi bi-printer"></i> Físico</span>
+      {% endif %}
+    </div>
+    <h3 class="h6 fw-semibold">{{ produto.nome }}</h3>
+    <p class="small text-body-secondary mb-3">{{ produto.descricao|truncatewords:16 }}</p>
+    <div class="mt-auto d-flex justify-content-between align-items-end">
+      <div>
+        {% if not produto.eh_digital %}<span class="small text-body-secondary d-block">a partir de</span>{% endif %}
+        <span class="fs-5 fw-bold">R$ {{ produto.preco_exibido|floatformat:2 }}</span>
+      </div>
+      <div class="text-end small">
+        <span class="d-block text-body-secondary"><i class="bi bi-shop"></i> {{ produto.loja.nome }}</span>
+        {% if not produto.eh_digital and not produto.estoque %}
+          <span class="text-danger">Esgotado</span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</article>

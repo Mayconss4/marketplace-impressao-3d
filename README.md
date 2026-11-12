@@ -1,7 +1,7 @@
 # Marketplace 3D - Marketplace de Venda de Produtos de Impressão 3D
 
 Trabalho da disciplina **GAC116 - Programação Web** (Projeto de Implementação com Django).
-**Entrega atual:** Checkpoint 1 (apresentação em 05/11/2026).
+**Entrega atual:** Checkpoint 2 — aplicação concluída (apresentação em 19/11/2026).
 
 **Integrantes**
 - Maycon Henrique Soares de Sousa
@@ -65,9 +65,14 @@ python manage.py popular_demo
 python manage.py runserver
 ```
 
-- Página inicial: <http://127.0.0.1:8000/>
-- Login do site: <http://127.0.0.1:8000/entrar/>
-- Django Admin (Jazzmin): <http://127.0.0.1:8000/admin/>
+| Página | Endereço |
+|---|---|
+| Início (vitrine) | <http://127.0.0.1:8000/> |
+| Catálogo com busca e filtros | <http://127.0.0.1:8000/produtos/> |
+| Cadastre-se | <http://127.0.0.1:8000/cadastro/> |
+| Login / logout | <http://127.0.0.1:8000/entrar/> · botão **Sair** no menu do usuário |
+| Área do usuário (comprador) | <http://127.0.0.1:8000/minha-conta/> |
+| Django Admin (Jazzmin) | <http://127.0.0.1:8000/admin/> |
 
 O banco usado é o SQLite em `db.sqlite3` (configurado em `config/settings.py`); não há configuração adicional.
 Em produção, defina as variáveis `DJANGO_SECRET_KEY`, `DJANGO_DEBUG=0` e `DJANGO_ALLOWED_HOSTS`.
@@ -112,20 +117,31 @@ marketplace-impressao-3d/
 ├── requirements.txt
 ├── config/                  # settings (SQLite, Jazzmin, mídia pública/privada) e URLs raiz
 ├── apps/
-│   ├── core/                # home, login, view de arquivos privados, utilitários do admin,
-│   │   │                    # validadores, armazenamento privado, testes
+│   ├── core/                # home, painel do usuário, login, arquivos privados, utilitários do admin,
+│   │   │                    # validadores, armazenamento privado, testes (tests.py e tests_area_usuario.py)
 │   │   └── management/commands/popular_demo.py
-│   ├── contas/              # Usuario (AbstractUser), Endereco
-│   ├── vendedores/          # SolicitacaoVendedor, PerfilVendedor, Loja, grupo "Vendedores"
-│   ├── catalogo/            # Categoria, Produto, VariacaoProduto, ImagemProduto, ArquivoDigital
-│   ├── orcamentos/          # Orcamento
-│   └── pedidos/             # Carrinho, ItemCarrinho, Pedido, SubPedido, ItemPedido,
-│                            # PagamentoSimulado e serviços transacionais (servicos.py)
-├── templates/               # base.html, core/home.html, registration/login.html
+│   ├── contas/              # Usuario (AbstractUser), Endereco; cadastro, dados, senha e endereços
+│   ├── vendedores/          # SolicitacaoVendedor, PerfilVendedor, Loja, grupo "Vendedores"; solicitação pelo site
+│   ├── catalogo/            # Categoria, Produto, VariacaoProduto, ImagemProduto, ArquivoDigital; vitrine pública
+│   ├── orcamentos/          # Orcamento; envio e decisão pelo comprador
+│   └── pedidos/             # Carrinho, ItemCarrinho, Pedido, SubPedido, ItemPedido, PagamentoSimulado,
+│                            # serviços transacionais (servicos.py), carrinho/checkout/pedidos
+├── templates/
+│   ├── base.html            # layout, menu responsivo, alternância de tema
+│   ├── area_conta.html      # layout da área do usuário (menu lateral)
+│   ├── includes/            # card de produto, campos de formulário, badges, estado vazio
+│   ├── core/                # home, painel "Minha conta"
+│   ├── registration/        # login
+│   ├── contas/              # cadastro, dados, senha, endereços (CRUD)
+│   ├── catalogo/            # lista com filtros e detalhe do produto
+│   ├── pedidos/             # carrinho, checkout, lista e detalhe de pedidos
+│   ├── orcamentos/          # lista, novo, detalhe (aceitar/recusar/cancelar)
+│   └── vendedores/          # solicitação de vendedor / minha loja
 ├── static/                  # logo, CSS do site e do admin, JS (tema e formulário de produto)
 ├── docs/
 │   ├── diagrama-er.md       # diagrama ER em Mermaid + políticas de exclusão e restrições
-│   └── roteiro-apresentacao.md
+│   ├── roteiro-apresentacao.md   # roteiro do Checkpoint 1
+│   └── roteiro-checkpoint2.md    # roteiro do Checkpoint 2 (passo a passo de validação)
 ├── media/                   # (gerada) mídia PÚBLICA: imagens de produtos e logotipos
 └── private_media/           # (gerada) mídia PRIVADA: arquivos digitais e de orçamentos
 ```
@@ -135,6 +151,7 @@ marketplace-impressao-3d/
 As dependências seguem **uma única direção**, sem referências circulares:
 `contas` → `vendedores` → `catalogo` → `orcamentos` → `pedidos`. O app `core` reúne o que é transversal
 (páginas públicas, validadores de CPF/CNPJ/telefone/formatos 3D, armazenamento privado, mixin de isolamento do admin).
+Cada app de domínio tem seus próprios `views.py`, `urls.py` (com namespace) e `forms.py` (padrão MVT).
 
 ## Modelagem
 
@@ -158,7 +175,7 @@ As dependências seguem **uma única direção**, sem referências circulares:
 |---|---|---|
 | **Administrador** | `is_superuser` | Tudo no painel: usuários, aprovações, lojas, categorias, produtos, pedidos; consulta orçamentos e pagamentos. |
 | **Vendedor** | `PerfilVendedor` criado pela aprovação + grupo `Vendedores` + `is_staff` (só para entrar no painel) | Própria loja, próprios produtos/variações/imagens/arquivos, orçamentos destinados a ele (responde os pendentes), próprios subpedidos e pagamentos simulados; categorias apenas para consulta. |
-| **Comprador** | Qualquer conta ativa | Login no site; **não** acessa o painel. A área do comprador é do Checkpoint 2. |
+| **Comprador** | Qualquer conta ativa (inclusive criada em *Cadastre-se*) | Área do usuário no site (`/minha-conta/`): pedidos, orçamentos, carrinho, endereços, dados e senha, solicitação de vendedor. **Não** acessa o painel. |
 
 O isolamento é aplicado **no servidor**, não só ocultando menus: os ModelAdmins filtram `get_queryset`
 (listas, buscas, autocomplete e acesso direto por ID), revalidam a posse em `has_view/change/delete_permission`,
@@ -169,7 +186,8 @@ excluídos pelo painel (histórico).
 
 **Arquivos privados**: ficam em `private_media/`, fora da pasta pública, e são servidos apenas por
 `/arquivos-privados/...`, que exige login e verifica a autorização: arquivos de orçamento → comprador,
-vendedor destinatário e administrador; arquivos de produto digital → vendedor dono e administrador.
+vendedor destinatário e administrador; arquivos de produto digital → vendedor dono, administrador e o **comprador,
+depois que o pagamento simulado do subpedido for confirmado**.
 
 ## Django Admin (Jazzmin)
 
@@ -179,24 +197,35 @@ vendedor destinatário e administrador; arquivos de produto digital → vendedor
 - **Buscas textuais** em usuários, solicitações, lojas, categorias, produtos, variações, orçamentos, pedidos e pagamentos.
 - **Ações**: aprovar/recusar solicitações, ativar/desativar lojas e anúncios, alterar status de pedidos/subpedidos, confirmar pagamento simulado.
 
-## Funcionalidades - situação no Checkpoint 1
+## Principais funcionalidades
 
-**Concluídas e verificadas**
-- Modelagem completa com migrações aplicadas e restrições no banco.
-- Painel Jazzmin com ModelAdmins, inlines, filtros, buscas e ações.
-- Aprovação/recusa de vendedores; criação da loja pelo vendedor aprovado.
-- Isolamento entre vendedores no painel; comprador bloqueado no painel.
-- Resposta de orçamento pelo vendedor; geração de pedido a partir de orçamento aceito (via modelo/serviço).
-- Página inicial com produtos disponíveis, login/logout, navegação responsiva, tema claro/escuro.
-- Download protegido de arquivos privados para os perfis autorizados.
-- Comando de dados demonstrativos repetível e removível.
+**Área pública**
+- Vitrine na página inicial e **catálogo** com busca textual, filtro por categoria (inclui subcategorias), tipo e loja,
+  ordenação por preço/nome/data e paginação.
+- Página do produto com galeria de imagens, variações (material/cor/tamanho, preço e estoque) e produtos relacionados.
+- **Cadastre-se**, **login** e **logout**; tema claro/escuro lembrado no navegador; layout responsivo (Bootstrap 5.3).
 
-**Somente modeladas/preparadas (interface no Checkpoint 2)**
-- Cadastro público de usuários e solicitação de vendedor pelo site.
-- Área do comprador: endereços, carrinho, checkout (o serviço `registrar_pedido` já valida estoque, disponibilidade e endereço e baixa o estoque), histórico de pedidos, cancelamento de pedido pendente.
-- Aceite/recusa/cancelamento de orçamento pelo comprador na interface (as transições existem no modelo).
-- Liberação de arquivos digitais ao comprador após a conclusão da compra.
-- Painel comercial do vendedor fora do Django Admin.
+**Área do usuário final** (`/minha-conta/`, exige login)
+- **Visão geral** com pedidos em aberto, propostas para decidir, itens no carrinho e atalhos.
+- **Endereços**: cadastrar, listar, editar e excluir (CRUD), isolados por usuário.
+- **Dados e senha**: editar nome/e-mail (e-mail único) e trocar a senha.
+- **Carrinho**: adicionar (físico exige variação; digital tem quantidade fixa 1), alterar quantidade com checagem de
+  estoque, remover. Vendedores não compram da própria loja.
+- **Checkout**: escolha do endereço (dispensado para pedidos só digitais); gera o pedido dividido em **subpedidos por loja**,
+  copia preços e endereço, baixa o estoque e cria os pagamentos simulados, tudo em uma transação.
+- **Meus pedidos**: lista com filtro de status e detalhe por loja (status do subpedido e do pagamento).
+  **Cancelamento** de pedido pendente: cancela todos os subpedidos e devolve o estoque (bloqueado se algum subpedido
+  já andou ou teve pagamento confirmado).
+- **Downloads digitais** liberados no detalhe do pedido depois que a loja confirma o pagamento simulado.
+- **Meus orçamentos**: enviar arquivo 3D (STL/3MF/OBJ/STEP) a uma loja, acompanhar, **aceitar** a proposta escolhendo o
+  endereço (gera o pedido), **recusar** ou **cancelar**. Ninguém pede orçamento à própria loja.
+- **Quero vender**: solicitação de vendedor com CPF/CNPJ validados e acompanhamento do status. Depois de aprovado, o
+  usuário vê "Minha loja" e acessa o painel do vendedor.
+
+**Área administrativa** (`/admin/`, Jazzmin)
+- Administrador: controle integral, aprovação/recusa de vendedores, categorias, lojas, produtos, pedidos, pagamentos.
+- Vendedor: própria loja, produtos/variações/imagens/arquivos, orçamentos recebidos (responde com preço unitário),
+  próprios subpedidos e confirmação de pagamento simulado; isolamento entre vendedores no servidor.
 
 ## Verificações
 
@@ -207,12 +236,23 @@ python manage.py migrate
 python manage.py test apps
 ```
 
-A suíte em `apps/core/tests.py` (25 testes) cobre: abertura de todas as listagens do admin com cada opção
-de filtro e busca; formulários de edição; isolamento entre vendedores (listas, acesso por ID, POST forjado);
-bloqueio do comprador; aprovação de vendedor; resposta de orçamento; validações dos inlines de produto;
-acesso a arquivos privados; e restrições de integridade.
+São 44 testes automatizados:
+- `apps/core/tests.py` (25): todas as listagens do admin com cada filtro e busca; formulários de edição; isolamento entre
+  vendedores (listas, acesso por ID, POST forjado); bloqueio do comprador no painel; aprovação de vendedor; resposta
+  de orçamento; validações dos inlines de produto; arquivos privados; restrições de integridade.
+- `apps/core/tests_area_usuario.py` (19): cadastro, login e área protegida; troca de senha; CRUD e isolamento de
+  endereços; filtros do catálogo; carrinho (estoque, digital, autocompra); checkout; cancelamento com devolução de
+  estoque; liberação de downloads após o pagamento; envio, aceite, recusa e cancelamento de orçamentos;
+  solicitação de vendedor; abertura de todas as telas com cada perfil.
 
-## Publicação no GitHub
+## Controle de versão
 
-A criação do repositório e os commits são feitos manualmente pelos integrantes. O `.gitignore` já exclui
-`.venv/`, `db.sqlite3`, `media/` e `private_media/`.
+Repositório público: <https://github.com/Mayconss4/marketplace-impressao-3d>
+
+| Branch | Uso |
+|---|---|
+| `main` | versão estável entregue em cada checkpoint |
+| `develop` | integração das funcionalidades |
+| `feature/*` | uma branch por funcionalidade (ex.: `feature/cadastro-contas`, `feature/carrinho-checkout`), integrada em `develop` com merge |
+
+O `.gitignore` exclui `.venv/`, `db.sqlite3`, `media/` e `private_media/`.

@@ -108,6 +108,15 @@ class Orcamento(models.Model):
     def __str__(self):
         return f"Orçamento #{self.pk} — {self.material}/{self.cor} × {self.quantidade}"
 
+    def clean(self):
+        super().clean()
+        if self.comprador_id and self.vendedor_id and self.vendedor.usuario_id == self.comprador_id:
+            raise ValidationError({"vendedor": "Você não pode solicitar orçamento a si mesmo."})
+
+    @property
+    def pode_ser_cancelado(self):
+        return self.status in (self.Status.PENDENTE, self.Status.RESPONDIDO)
+
     @property
     def valor_total_proposto(self):
         if self.preco_unitario_proposto is None:

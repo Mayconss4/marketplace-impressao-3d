@@ -1,0 +1,60 @@
+{% extends "area_conta.html" %}
+{% block titulo %}Carrinho — Marketplace 3D{% endblock %}
+{% block area %}
+<h1 class="h4 fw-bold mb-3">Carrinho</h1>
+{% if itens %}
+<div class="card shadow-sm">
+  <div class="table-responsive">
+    <table class="table align-middle mb-0">
+      <thead class="small text-body-secondary">
+        <tr><th>Produto</th><th class="text-end">Unitário</th><th style="width: 11rem">Quantidade</th><th class="text-end">Subtotal</th><th></th></tr>
+      </thead>
+      <tbody>
+      {% for item in itens %}
+        <tr>
+          <td>
+            <a class="fw-semibold" href="{% url 'catalogo:detalhe' item.produto.pk %}">{{ item.produto.nome }}</a>
+            <div class="small text-body-secondary">
+              <i class="bi bi-shop"></i> {{ item.produto.loja.nome }}
+              {% if item.variacao %} · {{ item.variacao }}{% else %} · <span class="badge text-bg-info">Digital</span>{% endif %}
+            </div>
+          </td>
+          <td class="text-end text-nowrap">R$ {{ item.preco_unitario|floatformat:2 }}</td>
+          <td>
+            {% if item.variacao %}
+              <form method="post" action="{% url 'pedidos:atualizar_item' item.pk %}" class="input-group input-group-sm">
+                {% csrf_token %}
+                <input class="form-control" type="number" name="quantidade" value="{{ item.quantidade }}" min="1" max="{{ item.variacao.estoque }}" aria-label="Quantidade">
+                <button class="btn btn-outline-secondary" type="submit" title="Atualizar"><i class="bi bi-arrow-repeat"></i></button>
+              </form>
+            {% else %}
+              <span class="small text-body-secondary">1 (fixo)</span>
+            {% endif %}
+          </td>
+          <td class="text-end text-nowrap fw-semibold">R$ {{ item.subtotal|floatformat:2 }}</td>
+          <td class="text-end">
+            <form method="post" action="{% url 'pedidos:atualizar_item' item.pk %}">
+              {% csrf_token %}
+              <input type="hidden" name="acao" value="remover">
+              <button class="btn btn-sm btn-outline-danger" type="submit" title="Remover"><i class="bi bi-trash"></i></button>
+            </form>
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="card-footer bg-transparent d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <a href="{% url 'catalogo:lista' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> Continuar comprando</a>
+    <div class="d-flex align-items-center gap-3">
+      <span class="fs-5">Total: <strong>R$ {{ total|floatformat:2 }}</strong></span>
+      <a href="{% url 'pedidos:checkout' %}" class="btn btn-primary"><i class="bi bi-bag-check"></i> Finalizar compra</a>
+    </div>
+  </div>
+</div>
+{% else %}
+  {% url 'catalogo:lista' as url_catalogo %}
+  {% include "includes/vazio.html" with icone="cart3" mensagem="Seu carrinho está vazio." dica="Explore os produtos e adicione itens ao carrinho." %}
+  <div class="text-center mt-3"><a class="btn btn-primary" href="{{ url_catalogo }}"><i class="bi bi-grid"></i> Ver produtos</a></div>
+{% endif %}
+{% endblock %}
