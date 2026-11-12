@@ -37,11 +37,17 @@ Dependências exatas em [requirements.txt](requirements.txt). Nenhum serviço ex
 
 ## Requisitos de ambiente
 
-- Windows com PowerShell.
-- Python 3.12 instalado (verifique com `py -3.12 --version`). Para instalar: `winget install Python.Python.3.12`.
+- Windows com PowerShell ou macOS com Terminal.
+- Python 3.12 instalado:
+  - Windows: verifique com `py -3.12 --version`. Para instalar: `winget install Python.Python.3.12`.
+  - macOS: verifique com `python3.12 --version`. Com [Homebrew](https://brew.sh/), instale com `brew install python@3.12`.
 - Acesso à internet apenas para instalar dependências e carregar o Bootstrap por CDN.
 
-## Instalação e execução (PowerShell)
+## Instalação e execução
+
+Execute os comandos na pasta do projeto.
+
+### Windows (PowerShell)
 
 ```powershell
 # 1. Na pasta do projeto, criar e ativar o ambiente virtual
@@ -73,6 +79,35 @@ python manage.py runserver
 | Login / logout | <http://127.0.0.1:8000/entrar/> · botão **Sair** no menu do usuário |
 | Área do usuário (comprador) | <http://127.0.0.1:8000/minha-conta/> |
 | Django Admin (Jazzmin) | <http://127.0.0.1:8000/admin/> |
+### macOS (Terminal)
+
+```sh
+# 1. Criar e ativar o ambiente virtual
+python3.12 -m venv .venv
+source .venv/bin/activate
+
+# 2. Instalar as dependências
+python -m pip install -r requirements.txt
+
+# 3. Criar o banco SQLite (db.sqlite3) e aplicar as migrações
+python manage.py migrate
+
+# 4. (Opcional) Criar seu próprio superusuário
+python manage.py createsuperuser
+
+# 5. Popular com dados demonstrativos fictícios
+python manage.py popular_demo
+
+# 6. Iniciar o servidor
+python manage.py runserver
+```
+
+Em ambos os sistemas, mantenha o ambiente virtual ativado para executar os comandos do projeto.
+Para encerrá-lo, execute `deactivate`.
+
+- Página inicial: <http://127.0.0.1:8000/>
+- Login do site: <http://127.0.0.1:8000/entrar/>
+- Django Admin (Jazzmin): <http://127.0.0.1:8000/admin/>
 
 O banco usado é o SQLite em `db.sqlite3` (configurado em `config/settings.py`); não há configuração adicional.
 Em produção, defina as variáveis `DJANGO_SECRET_KEY`, `DJANGO_DEBUG=0` e `DJANGO_ALLOWED_HOSTS`.
@@ -98,7 +133,7 @@ imagens e logotipos gerados pelo próprio comando, 5 arquivos digitais privados,
 com pagamentos simulados pendentes e confirmados. CPFs/CNPJs têm dígitos verificadores válidos, mas são gerados
 artificialmente; e-mails usam o domínio reservado `exemplo.invalid`.
 
-```powershell
+```text
 python manage.py popular_demo            # cria; se já existirem, não duplica nada
 python manage.py popular_demo --recriar  # remove os dados demo e cria de novo
 python manage.py popular_demo --limpar   # remove somente os dados demo
@@ -229,7 +264,7 @@ depois que o pagamento simulado do subpedido for confirmado**.
 
 ## Verificações
 
-```powershell
+```text
 python manage.py check
 python manage.py makemigrations --check --dry-run
 python manage.py migrate
